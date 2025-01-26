@@ -1,0 +1,34 @@
+shader Texture(
+  string texture_path = "",
+  color texture_input=color(0, 0, 0),
+  
+  // COLOR
+  float Lift = 0.0
+  [[
+  string page = "Color",
+  float min = 0,
+  float max = 1,
+  ]],
+  
+  float Gamma = 2.2
+  [[
+  string page = "Color",
+  float min = 0,
+  float max = 10
+  ]],
+  
+  float Gain = 1.0
+  [[
+  string page = "Color",
+  float min = 0,
+  float max = 10
+  ]],
+  
+  output color outColor=0,
+  output string outFilepath=""
+)
+{
+  color tex_color = texture(texture_path, u, v);
+  outColor = outColor = Lift + pow(tex_color, Gamma) * Gain;
+  outFilepath = texture_path;
+}
