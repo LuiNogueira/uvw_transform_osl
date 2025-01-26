@@ -4,7 +4,7 @@
 // Copyright 2019 Autodesk Inc, All rights reserved. This file is licensed under Apache 2.0 license
 //    https://github.com/ADN-DevTech/3dsMax-OSL-Shaders/blob/master/LICENSE.txt
 // Modified by Saul Espinosa for Redshift Renderer 2021-01-21 Added Extra Page Metadata\
-// Modified by Lui Nogueira 2025-01-25 Added color output and texture path input. UVs centered by default.
+// Modified by Lui Nogueira 2025-01-25 Added color output and texture path input. UVs centered by default. Gamma correction
 
 shader UVWTransform
 [[
@@ -42,13 +42,14 @@ shader UVWTransform
 	int connectable = 0,
 	]],
 
+    // ROTATION
 	float  Rotate = 0.0
 	[[
 	string page = "Rotation",
 	float min = -180, float max = 180
 	]],
 
-	point  RotCenter = point(0.5,0.5,0)
+	point  RotCenter = point(0,0,0)
 	[[
 	string label = "Rotation Center",
 	string page = "Rotation"
@@ -59,6 +60,28 @@ shader UVWTransform
 	string label = "Rotation Axis",
 	string page = "Rotation"
 	]],
+
+	// COLOR
+	float Lift = 0.0
+	[[
+	string page = "Color",
+	float min = 0,
+	float max = 1,
+	]],
+
+	float Gamma = 2.2
+	[[
+    string page = "Color",
+	float min = 0,
+	float max = 10
+	]],
+
+	float Gain = 1.0
+    [[
+    string page = "Color",
+    float min = 0,
+    float max = 10
+    ]],
 
 // UVW Output
     output point UVW = 0,
@@ -72,9 +95,10 @@ shader UVWTransform
 	point Input = select(vector(u_centered,v_centered,0), uvwInput, isconnected(uvwInput));
 
 	UVW = rotate(Input - -Offset, radians(Rotate), RotCenter, RotCenter + RotAxis) * Tiling / worldScale / (1.0/Scale);
-    outColor = texture(texture_path, UVW[0], UVW[1]);
+
+    color tex_color = texture(texture_path, UVW[0], UVW[1]);
+    outColor = Lift + pow(tex_color, Gamma) * Gain;
 
 	if (Wrap)
 	UVW -= floor(UVW);
-	outColor = texture(texture_path, UVW[0], UVW[1]);
 }
